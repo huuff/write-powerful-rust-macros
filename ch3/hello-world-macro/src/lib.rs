@@ -41,3 +41,19 @@ pub fn hello_no_dep(item: TokenStream) -> TokenStream {
     .parse()
     .unwrap()
 }
+
+#[proc_macro_derive(UpperCaseName)]
+pub fn uppercase(item: TokenStream) -> TokenStream {
+    let ast = parse_macro_input!(item as DeriveInput);
+    let name = ast.ident;
+    let uppercase_name = name.to_string().to_uppercase();
+
+    quote! {
+        impl #name {
+            pub fn uppercase(&self) {
+                println!("{}", #uppercase_name);
+            }
+        }
+    }
+    .into()
+}
