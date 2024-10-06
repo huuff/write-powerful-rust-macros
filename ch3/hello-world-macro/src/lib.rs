@@ -6,11 +6,12 @@ use syn::{parse_macro_input, DeriveInput};
 pub fn hello(item: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(item as DeriveInput);
     let name = ast.ident;
+    let name_str = name.to_string();
 
     let add_hello_world = quote! {
         impl #name {
             fn hello_world(&self) {
-                println!("Hello, World!");
+                println!("Hello, {}!", #name_str);
             }
         }
     };
