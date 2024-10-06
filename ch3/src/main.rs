@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate hello_world_macro;
 
-#[derive(Hello)]
+#[derive(HelloNoDep)]
 struct Example;
 
 pub fn main() {
