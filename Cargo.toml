@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+
+members = [
+  "ch3/*"
+]
+
+[workspace.dependencies]
+syn = "2"
+quote = "1"
