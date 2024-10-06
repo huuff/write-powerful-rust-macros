@@ -38,7 +38,11 @@
       let
         overlays = [ (import rust-overlay) ];
         pkgs = import nixpkgs { inherit system overlays; };
-        rustPkgs = pkgs.rust-bin.stable.latest;
+        rustPkgs = pkgs.rust-bin.stable.latest.default.override {
+          targets = [ 
+            "x86_64-unknown-linux-musl" 
+          ]; 
+        };
         treefmt-build = (treefmt.lib.evalModule pkgs ./treefmt.nix).config.build;
         pre-commit-check = pre-commit.lib.${system}.run {
           src = ./.;
@@ -67,7 +71,7 @@
             inherit (pre-commit-check) shellHook;
             buildInputs = [
               # rust
-              (rustPkgs.default.override { targets = [ "x86_64-unknown-linux-musl" ]; })
+              rustPkgs
               rust-analyzer
 
               # nix

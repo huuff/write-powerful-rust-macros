@@ -29,12 +29,7 @@
 
   clippy = {
     enable = true;
-    packageOverrides = {
-      inherit (rustPkgs) clippy cargo;
-    };
-    settings = {
-      allFeatures = true;
-    };
+    entry = pkgs.lib.mkForce "${rustPkgs}/bin/cargo-clippy clippy --all-features";
   };
 
 }
