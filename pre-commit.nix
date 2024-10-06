@@ -1,4 +1,8 @@
-{ pkgs, treefmt, rustPkgs }:
+{
+  pkgs,
+  treefmt,
+  rustPkgs,
+}:
 
 {
   check-merge-conflicts.enable = true;
@@ -29,7 +33,7 @@
 
   clippy = {
     enable = true;
-    entry = pkgs.lib.mkForce "${rustPkgs}/bin/cargo-clippy clippy --all-features";
+    entry = pkgs.lib.mkForce "${rustPkgs}/bin/cargo-clippy clippy --all-features --deny warnings";
   };
 
 }
