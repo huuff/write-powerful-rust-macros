@@ -37,6 +37,9 @@
       clippy = rustPkgs;
       cargo = rustPkgs;
     };
+    settings = {
+      allFeatures = true;
+    };
   };
 
 }
