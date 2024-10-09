@@ -1,8 +1,8 @@
 use proc_macro::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::Data::Struct;
 use syn::Fields::Named;
-use syn::{parse_macro_input, DataStruct, DeriveInput, FieldsNamed};
+use syn::{parse_macro_input, DataStruct, DeriveInput, Field, FieldsNamed, Ident, Type};
 
 #[proc_macro_attribute]
 pub fn public(_attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -17,12 +17,7 @@ pub fn public(_attr: TokenStream, item: TokenStream) -> TokenStream {
         _ => unimplemented!("only works for structs with named fields"),
     };
 
-    let builder_fields = fields.iter().map(|f| {
-        let name = &f.ident;
-        let ty = &f.ty;
-
-        quote! { pub #name: #ty }
-    });
+    let builder_fields = fields.iter().map(StructField::new);
 
     let public_version = quote! {
         pub struct #name {
@@ -31,4 +26,25 @@ pub fn public(_attr: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     public_version.into()
+}
+
+struct StructField {
+    name: Ident,
+    ty: Type,
+}
+
+impl StructField {
+    fn new(field: &Field) -> Self {
+        Self {
+            name: field.ident.as_ref().unwrap().clone(),
+            ty: field.ty.clone(),
+        }
+    }
+}
+impl ToTokens for StructField {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let n = &self.name;
+        let t = &self.ty;
+        quote!(pub #n: #t).to_tokens(tokens)
+    }
 }

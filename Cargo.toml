@@ -6,3 +6,4 @@ members = ["ch3", "ch4"]
 [workspace.dependencies]
 syn = "2"
 quote = "1"
+proc-macro2 = "1"
