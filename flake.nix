@@ -73,6 +73,7 @@
               # rust
               rustPkgs
               rust-analyzer
+              cargo-expand
 
               # nix
               nil
