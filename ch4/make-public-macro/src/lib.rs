@@ -5,7 +5,7 @@ use syn::punctuated::Punctuated;
 use syn::token::Colon;
 use syn::Data::Struct;
 use syn::Fields::Named;
-use syn::{parse_macro_input, DataStruct, DeriveInput, FieldsNamed, Ident, Type, Visibility};
+use syn::{parse_macro_input, DataStruct, DeriveInput, FieldsNamed, Ident, Visibility};
 
 #[proc_macro_attribute]
 pub fn public(_attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -35,7 +35,7 @@ pub fn public(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
 struct StructField {
     name: Ident,
-    ty: Type,
+    ty: Ident,
 }
 
 impl ToTokens for StructField {
@@ -52,7 +52,7 @@ impl Parse for StructField {
         let list = Punctuated::<Ident, Colon>::parse_terminated(input).unwrap();
 
         let name = list.first().unwrap().clone();
-        let ty = Type::Verbatim(list.last().unwrap().clone().into_token_stream());
+        let ty = list.last().unwrap().clone();
 
         Ok(StructField { name, ty })
     }
