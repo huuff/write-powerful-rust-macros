@@ -47,6 +47,7 @@ impl ToTokens for StructField {
 }
 
 impl Parse for StructField {
+    // punctuated
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let _vis: syn::Result<Visibility> = input.parse();
         let list = Punctuated::<Ident, Colon>::parse_terminated(input).unwrap();
@@ -56,4 +57,26 @@ impl Parse for StructField {
 
         Ok(StructField { name, ty })
     }
+
+    // cursor
+    // fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+    //     let first = input.cursor().ident().unwrap();
+
+    //     let res = if first.0.to_string().contains("pub") {
+    //         let second = first.1.ident().unwrap();
+    //         let third = second.1.punct().unwrap().1.ident().unwrap();
+    //         Ok(StructField {
+    //             name: second.0,
+    //             ty: third.0,
+    //         })
+    //     } else {
+    //         let second = first.1.punct().unwrap().1.ident().unwrap();
+    //         Ok(StructField {
+    //             name: first.0,
+    //             ty: second.0,
+    //         })
+    //     };
+    //     let _: Result<proc_macro2::TokenStream, _> = input.parse();
+    //     res
+    // }
 }
