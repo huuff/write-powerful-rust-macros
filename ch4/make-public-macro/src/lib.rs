@@ -4,41 +4,55 @@ use syn::parse::Parse;
 use syn::punctuated::Punctuated;
 use syn::token::Colon;
 use syn::Data::Struct;
-use syn::Fields::Named;
-use syn::{parse_macro_input, DataStruct, DeriveInput, FieldsNamed, Ident, Visibility};
+use syn::{
+    parse_macro_input, DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed, Ident, Type,
+    Visibility,
+};
 
 #[proc_macro_attribute]
 pub fn public(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(item as DeriveInput);
     let name = ast.ident;
 
-    let fields = match ast.data {
+    match ast.data {
         Struct(DataStruct {
-            fields: Named(FieldsNamed { ref named, .. }),
+            fields: Fields::Named(FieldsNamed { ref named, .. }),
             ..
-        }) => named,
-        _ => unimplemented!("only works for structs with named fields"),
-    };
+        }) => {
+            let builder_fields = named
+                .iter()
+                .map(|f| syn::parse2::<NamedStructField>(f.to_token_stream()).unwrap());
 
-    let builder_fields = fields
-        .iter()
-        .map(|f| syn::parse2::<StructField>(f.to_token_stream()).unwrap());
-
-    let public_version = quote! {
-        pub struct #name {
-            #(#builder_fields,)*
+            quote! {
+               pub struct #name {
+                   #(#builder_fields,)*
+               }
+            }
+            .into()
         }
-    };
+        Struct(DataStruct {
+            fields: Fields::Unnamed(FieldsUnnamed { ref unnamed, .. }),
+            ..
+        }) => {
+            let builder_fields = unnamed
+                .iter()
+                .map(|f| syn::parse2::<UnnamedStructField>(f.to_token_stream()).unwrap());
 
-    public_version.into()
+            quote! {
+                pub struct #name(#(#builder_fields,)*);
+            }
+            .into()
+        }
+        _ => unimplemented!("only works for structs with named fields"),
+    }
 }
 
-struct StructField {
+struct NamedStructField {
     name: Ident,
     ty: Ident,
 }
 
-impl ToTokens for StructField {
+impl ToTokens for NamedStructField {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let n = &self.name;
         let t = &self.ty;
@@ -46,7 +60,7 @@ impl ToTokens for StructField {
     }
 }
 
-impl Parse for StructField {
+impl Parse for NamedStructField {
     // punctuated
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let _vis: syn::Result<Visibility> = input.parse();
@@ -55,28 +69,30 @@ impl Parse for StructField {
         let name = list.first().unwrap().clone();
         let ty = list.last().unwrap().clone();
 
-        Ok(StructField { name, ty })
+        Ok(NamedStructField { name, ty })
     }
+}
 
-    // cursor
-    // fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-    //     let first = input.cursor().ident().unwrap();
+struct UnnamedStructField(Type);
 
-    //     let res = if first.0.to_string().contains("pub") {
-    //         let second = first.1.ident().unwrap();
-    //         let third = second.1.punct().unwrap().1.ident().unwrap();
-    //         Ok(StructField {
-    //             name: second.0,
-    //             ty: third.0,
-    //         })
-    //     } else {
-    //         let second = first.1.punct().unwrap().1.ident().unwrap();
-    //         Ok(StructField {
-    //             name: first.0,
-    //             ty: second.0,
-    //         })
-    //     };
-    //     let _: Result<proc_macro2::TokenStream, _> = input.parse();
-    //     res
-    // }
+impl ToTokens for UnnamedStructField {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let ty = &self.0;
+        quote!(pub #ty).to_tokens(tokens)
+    }
+}
+
+impl Parse for UnnamedStructField {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let _vis: syn::Result<Visibility> = input.parse();
+        let ty: syn::Type = input.parse()?;
+
+        Ok(UnnamedStructField(ty))
+    }
+}
+
+#[proc_macro_attribute]
+pub fn delete(_attr: TokenStream, _item: TokenStream) -> TokenStream {
+    let public_version = quote! {};
+    public_version.into()
 }
