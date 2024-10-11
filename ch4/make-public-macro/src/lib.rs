@@ -1,7 +1,6 @@
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::parse::Parse;
-use syn::punctuated::Punctuated;
 use syn::token::Colon;
 use syn::{
     parse_macro_input, DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed, Ident, Type,
@@ -58,7 +57,7 @@ pub fn public(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
 struct NamedStructField {
     name: Ident,
-    ty: Ident,
+    ty: Type,
 }
 
 impl ToTokens for NamedStructField {
@@ -73,10 +72,9 @@ impl Parse for NamedStructField {
     // punctuated
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let _vis: syn::Result<Visibility> = input.parse();
-        let list = Punctuated::<Ident, Colon>::parse_terminated(input).unwrap();
-
-        let name = list.first().unwrap().clone();
-        let ty = list.last().unwrap().clone();
+        let name = input.parse::<Ident>()?;
+        let _ = input.parse::<Colon>()?;
+        let ty = input.parse::<Type>()?;
 
         Ok(NamedStructField { name, ty })
     }
@@ -105,3 +103,6 @@ pub fn delete(_attr: TokenStream, _item: TokenStream) -> TokenStream {
     let public_version = quote! {};
     public_version.into()
 }
+
+// #[proc_macro_attribute]
+// pub fn add_suffix(_attr: TokenStream, item: TokenStream) -> TokenStream {}
