@@ -3,11 +3,11 @@ use quote::{quote, ToTokens};
 use syn::parse::Parse;
 use syn::punctuated::Punctuated;
 use syn::token::Colon;
-use syn::Data::Struct;
 use syn::{
     parse_macro_input, DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed, Ident, Type,
     Visibility,
 };
+use syn::{Data, DataEnum};
 
 #[proc_macro_attribute]
 pub fn public(_attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -15,7 +15,7 @@ pub fn public(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let name = ast.ident;
 
     match ast.data {
-        Struct(DataStruct {
+        Data::Struct(DataStruct {
             fields: Fields::Named(FieldsNamed { ref named, .. }),
             ..
         }) => {
@@ -30,7 +30,7 @@ pub fn public(_attr: TokenStream, item: TokenStream) -> TokenStream {
             }
             .into()
         }
-        Struct(DataStruct {
+        Data::Struct(DataStruct {
             fields: Fields::Unnamed(FieldsUnnamed { ref unnamed, .. }),
             ..
         }) => {
@@ -43,7 +43,16 @@ pub fn public(_attr: TokenStream, item: TokenStream) -> TokenStream {
             }
             .into()
         }
-        _ => unimplemented!("only works for structs with named fields"),
+        Data::Enum(DataEnum { ref variants, .. }) => {
+            let variants_iter = variants.into_iter();
+            quote! {
+                pub enum #name {
+                    #(#variants_iter,)*
+                }
+            }
+            .into()
+        }
+        _ => unimplemented!("not available for unions"),
     }
 }
 

@@ -12,4 +12,10 @@ struct EmptyStruct {}
 #[public]
 struct TupleExample(u8, u32);
 
+#[public]
+enum ExampleEnum {
+    Struct { field_1: u8, field_2: String },
+    Tuple(u8),
+}
+
 fn main() {}
