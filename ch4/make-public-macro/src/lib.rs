@@ -1,10 +1,10 @@
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
-use syn::parse::Parse;
+use syn::parse::{Parse, ParseStream};
 use syn::token::Colon;
 use syn::{
-    parse_macro_input, DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed, Ident, Type,
-    Visibility,
+    parse_macro_input, DataStruct, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, Ident,
+    Type, Visibility,
 };
 use syn::{Data, DataEnum};
 
@@ -104,5 +104,48 @@ pub fn delete(_attr: TokenStream, _item: TokenStream) -> TokenStream {
     public_version.into()
 }
 
-// #[proc_macro_attribute]
-// pub fn add_suffix(_attr: TokenStream, item: TokenStream) -> TokenStream {}
+#[proc_macro_attribute]
+pub fn prefix(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(item as DeriveInput);
+
+    let name = input.ident;
+    let vis = input.vis;
+    let attrs = input.attrs;
+
+    let fields = match input.data {
+        syn::Data::Struct(syn::DataStruct {
+            fields: syn::Fields::Named(syn::FieldsNamed { ref named, .. }),
+            ..
+        }) => named,
+        _ => panic!("prefix only works on structs with named fields"),
+    };
+
+    let fields = fields.into_iter().map(|field| {
+        if field
+            .attrs
+            .iter()
+            .any(|attr| attr.meta.path().is_ident("pfx"))
+        {
+            let field_attrs = field
+                .attrs
+                .iter()
+                .filter(|attr| !attr.meta.path().is_ident("pfx"));
+            let field_name = syn::Ident::new(
+                &format!("pfx_{}", field.ident.as_ref().unwrap()),
+                proc_macro2::Span::call_site(),
+            );
+            let field_ty = &field.ty;
+            quote!(#(#field_attrs)* #field_name: #field_ty)
+        } else {
+            quote!(#field)
+        }
+    });
+
+    quote! {
+        #(#attrs)*
+        #vis struct #name {
+            #(#fields,)*
+        }
+    }
+    .into()
+}
