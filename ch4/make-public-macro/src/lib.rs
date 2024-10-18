@@ -1,10 +1,9 @@
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
-use syn::parse::{Parse, ParseStream};
-use syn::token::Colon;
+use syn::parse::Parse;
 use syn::{
-    parse_macro_input, DataStruct, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, Ident,
-    Type, Visibility,
+    parse_macro_input, DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed, Token, Type,
+    Visibility,
 };
 use syn::{Data, DataEnum};
 
@@ -18,9 +17,11 @@ pub fn public(_attr: TokenStream, item: TokenStream) -> TokenStream {
             fields: Fields::Named(FieldsNamed { ref named, .. }),
             ..
         }) => {
-            let builder_fields = named
-                .iter()
-                .map(|f| syn::parse2::<NamedStructField>(f.to_token_stream()).unwrap());
+            let builder_fields = named.iter().map(|f| {
+                let mut nu_field = f.clone();
+                nu_field.vis = syn::Visibility::Public(Token![pub](proc_macro2::Span::call_site()));
+                quote!(#nu_field)
+            });
 
             quote! {
                pub struct #name {
@@ -52,31 +53,6 @@ pub fn public(_attr: TokenStream, item: TokenStream) -> TokenStream {
             .into()
         }
         _ => unimplemented!("not available for unions"),
-    }
-}
-
-struct NamedStructField {
-    name: Ident,
-    ty: Type,
-}
-
-impl ToTokens for NamedStructField {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let n = &self.name;
-        let t = &self.ty;
-        quote!(pub #n: #t).to_tokens(tokens)
-    }
-}
-
-impl Parse for NamedStructField {
-    // punctuated
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let _vis: syn::Result<Visibility> = input.parse();
-        let name = input.parse::<Ident>()?;
-        let _ = input.parse::<Colon>()?;
-        let ty = input.parse::<Type>()?;
-
-        Ok(NamedStructField { name, ty })
     }
 }
 

@@ -1,8 +1,11 @@
 use make_public_macro::{delete, prefix, public};
 
+#[prefix]
 #[public]
 struct Example {
+    #[pfx]
     first: String,
+    #[pfx]
     pub second: u32,
 }
 
@@ -26,8 +29,12 @@ struct Prefixed {
 }
 
 fn main() {
-    let pfxd = Prefixed {
-        var: 16,
-        pfx_vor: 10,
-    };
+    // let ex = Example {
+    //     pfx_first: todo!(),
+    //     pfx_second: todo!(),
+    // };
+    // let pfxd = Prefixed {
+    //     var: 16,
+    //     pfx_vor: 10,
+    // };
 }
