@@ -94,3 +94,17 @@ impl quote::ToTokens for ComposeInput {
         total.to_tokens(tokens);
     }
 }
+
+#[proc_macro]
+pub fn hello_world(input: TokenStream) -> TokenStream {
+    let ident = parse_macro_input!(input as syn::Ident);
+
+    quote!(
+        impl #ident {
+            pub fn hello_world(&self) {
+                println!("Hello, World!")
+            }
+        }
+    )
+    .into()
+}
