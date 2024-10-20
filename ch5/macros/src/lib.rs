@@ -36,6 +36,23 @@ pub fn private(item: TokenStream) -> TokenStream {
         )
     });
 
+    let constructor = {
+        let field_ty_pairs = fields.iter().map(|field| {
+            let ident = &field.ident;
+            let ty = &field.ty;
+            quote!(#ident: #ty)
+        });
+        let idents_only = fields.iter().map(|f| &f.ident);
+
+        quote!(
+            fn new(#(#field_ty_pairs,)*) -> Self {
+                Self {
+                    #(#idents_only,)*
+                }
+            }
+        )
+    };
+
     quote!(
         #(#attrs)*
         #vis struct #name {
@@ -43,6 +60,7 @@ pub fn private(item: TokenStream) -> TokenStream {
         }
 
         impl #name {
+            #constructor
             #(#getters)*
         }
     )

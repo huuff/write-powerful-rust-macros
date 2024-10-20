@@ -23,10 +23,7 @@ fn main() {
 
     println!("{}", composed(7));
 
-    let privy = Privy {
-        public_var: 0,
-        priv_var: 0,
-    };
+    let privy = Privy::new(0, 0);
 
     privy.hello_world();
 }
