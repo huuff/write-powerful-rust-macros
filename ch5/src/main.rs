@@ -1,4 +1,4 @@
-use macros::private;
+use macros::{compose, private};
 
 private! {
     struct Privy {
@@ -7,6 +7,17 @@ private! {
     }
 }
 
+fn add_one(n: i32) -> i32 {
+    n + 1
+}
+
+fn stringify(n: i32) -> String {
+    n.to_string()
+}
+
 fn main() {
-    println!("Hello, world!");
+    #[rustfmt::skip]
+    let composed = compose!(add_one . add_one . stringify);
+
+    println!("{}", composed(7));
 }
