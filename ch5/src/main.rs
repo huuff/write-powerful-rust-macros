@@ -19,7 +19,7 @@ hello_world!(Privy);
 
 fn main() {
     #[rustfmt::skip]
-    let composed = compose!(add_one . add_one . stringify);
+    let composed = compose!(add_one >> add_one >> stringify);
 
     println!("{}", composed(7));
 

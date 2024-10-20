@@ -85,7 +85,7 @@ pub fn compose(item: TokenStream) -> TokenStream {
 }
 
 struct ComposeInput {
-    expressions: syn::punctuated::Punctuated<syn::Ident, syn::Token!(.)>,
+    expressions: syn::punctuated::Punctuated<syn::Ident, syn::Token!(>>)>,
 }
 
 impl syn::parse::Parse for ComposeInput {
