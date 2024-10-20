@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["ch3", "ch4"]
+members = ["ch3", "ch4", "ch5"]
 
 [workspace.dependencies]
 syn = "2"

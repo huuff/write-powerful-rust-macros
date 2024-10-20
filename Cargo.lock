@@ -10,6 +10,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ch5"
+version = "0.1.0"
+dependencies = [
+ "macros",
+]
+
+[[package]]
 name = "hello-world"
 version = "0.1.0"
 dependencies = [
@@ -20,6 +27,15 @@ dependencies = [
 name = "hello-world-macro"
 version = "0.1.0"
 dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
  "quote",
  "syn",
 ]
