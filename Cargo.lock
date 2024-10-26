@@ -3,6 +3,22 @@
 version = 3
 
 [[package]]
+name = "builder-code"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "builder-macro"
+version = "0.1.0"
+dependencies = [
+ "builder-code",
+]
+
+[[package]]
 name = "ch4"
 version = "0.1.0"
 dependencies = [
@@ -14,6 +30,13 @@ name = "ch5"
 version = "0.1.0"
 dependencies = [
  "macros",
+]
+
+[[package]]
+name = "ch6"
+version = "0.1.0"
+dependencies = [
+ "builder-macro",
 ]
 
 [[package]]

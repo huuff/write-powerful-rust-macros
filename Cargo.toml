@@ -1,7 +1,14 @@
 [workspace]
 resolver = "2"
 
-members = ["ch3", "ch4", "ch5"]
+members = [
+  "ch3", 
+  "ch4", 
+  "ch5", 
+  "ch6",
+  "ch6/builder-macro",
+  "ch6/builder-code",
+]
 
 [workspace.dependencies]
 syn = "2"
