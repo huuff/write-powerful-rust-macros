@@ -5,5 +5,5 @@ edition = "2021"
 
 [dependencies]
 quote = { workspace = true }
-syn = { workspace = true, features = [ "extra-traits" ]}
+syn = { workspace = true, features = ["extra-traits"] }
 proc-macro2 = { workspace = true }
