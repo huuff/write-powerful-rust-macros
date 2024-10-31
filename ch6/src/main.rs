@@ -30,4 +30,21 @@ mod tests {
 
         assert_eq!(gleipnir.roots_of, "mountains");
     }
+
+    #[test]
+    fn should_generate_builder_for_struct_with_two_properties() {
+        #[derive(Builder)]
+        struct Gleipnir {
+            roots_of: String,
+            breath_of_a_fish: u8,
+        }
+
+        let gleipnir = Gleipnir::builder()
+            .roots_of("mountains".to_string())
+            .breath_of_a_fish(1)
+            .build();
+
+        assert_eq!(gleipnir.roots_of, "mountains".to_string());
+        assert_eq!(gleipnir.breath_of_a_fish, 1);
+    }
 }

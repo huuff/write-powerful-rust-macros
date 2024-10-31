@@ -15,12 +15,19 @@ pub fn original_struct_setters(
     fields: &Punctuated<Field, Comma>,
 ) -> impl Iterator<Item = TokenStream> + '_ {
     fields.iter().map(|f| {
-        let field_name = &f.ident;
+        let (field_name, field_ty) = get_name_and_type(f);
         let field_name_as_string = field_name.as_ref().unwrap().to_string();
 
-        quote! {
-            #field_name: self.#field_name.as_ref().expect(&format!("field {} not set", #field_name_as_string)).to_string()
+        if matches_type(field_ty, "String") {
+            quote! {
+                #field_name: self.#field_name.as_ref().expect(&format!("field {} not set", #field_name_as_string)).to_string()
+            }
+        } else {
+            quote! {
+                #field_name: self.#field_name.expect(&format!("field {} not set", #field_name_as_string))
+            }
         }
+
     })
 }
 
@@ -51,6 +58,14 @@ fn get_name_and_type(f: &Field) -> (&Option<Ident>, &Type) {
     let field_name = &f.ident;
     let field_ty = &f.ty;
     (field_name, field_ty)
+}
+
+fn matches_type(ty: &Type, type_name: &str) -> bool {
+    if let Type::Path(ref p) = ty {
+        let first_match = p.path.segments[0].ident.to_string();
+        return first_match == *type_name;
+    }
+    false
 }
 
 #[cfg(test)]
