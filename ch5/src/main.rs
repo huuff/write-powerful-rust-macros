@@ -1,6 +1,7 @@
 use macros::{compose, hello_world, private};
 
 private! {
+    #[allow(dead_code)]
     struct Privy {
         pub public_var: u8,
         priv_var: u8,

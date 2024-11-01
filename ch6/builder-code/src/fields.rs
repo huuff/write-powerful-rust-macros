@@ -17,17 +17,21 @@ pub fn original_struct_setters(
     fields.iter().map(|f| {
         let (field_name, field_ty) = get_name_and_type(f);
         let field_name_as_string = field_name.as_ref().unwrap().to_string();
+        let error = quote!(expect(&format!("Field {} not set", #field_name_as_string)));
 
-        if matches_type(field_ty, "String") {
+        let handle_type = if matches_type(field_ty, "String") {
             quote! {
-                #field_name: self.#field_name.as_ref().expect(&format!("field {} not set", #field_name_as_string)).to_string()
+                as_ref().#error.to_string()
             }
         } else {
             quote! {
-                #field_name: self.#field_name.expect(&format!("field {} not set", #field_name_as_string))
+                #error
             }
-        }
+        };
 
+        quote! {
+            #field_name: self.#field_name.#handle_type
+        }
     })
 }
 
