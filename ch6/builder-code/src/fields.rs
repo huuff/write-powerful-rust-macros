@@ -7,7 +7,7 @@ pub fn builder_field_definitions(
 ) -> impl Iterator<Item = TokenStream> + '_ {
     fields.iter().map(|f| {
         let (name, ty) = get_name_and_type(f);
-        quote!(pub #name: Option<#ty>)
+        quote!(#name: Option<#ty>)
     })
 }
 

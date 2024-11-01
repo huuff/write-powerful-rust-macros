@@ -69,15 +69,39 @@ mod tests {
     #[test]
     fn builder_struct_with_expected_methods_should_be_present_in_output() {
         let input = quote! {
-            struct StructWithNoFields {}
+            struct Struct {
+                field: String
+            }
         };
-        let expected = quote! {
-            struct StructWithNoFieldsBuilder {}
+        let expected_builder = quote! {
+            struct StructBuilder {
+                field: Option<String>,
+            }
+        };
+
+        let expected_builder_methods = quote! {
+            impl StructBuilder {
+                pub fn field(mut self, input: String) -> Self {
+                    self.field = Some(input);
+                    self
+                }
+
+                pub fn build(self) -> Struct {
+                    Struct {
+                        field: self.field.expect(concat!("field not set: ", "field")),
+                    }
+                }
+            }
         };
 
         let actual = create_builder(input);
 
-        assert!(actual.to_string().contains(&expected.to_string()));
+        println!("actual: {actual}");
+        println!("expected builder methods: {expected_builder_methods}");
+        assert!(actual.to_string().contains(&expected_builder.to_string()));
+        assert!(actual
+            .to_string()
+            .contains(&expected_builder_methods.to_string()));
     }
 
     #[test]
