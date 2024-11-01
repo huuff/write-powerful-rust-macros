@@ -7,3 +7,4 @@ members = ["ch3", "ch4", "ch5", "ch6", "ch6/builder-macro", "ch6/builder-code"]
 syn = "2"
 quote = "1"
 proc-macro2 = "1"
+trybuild = "1"
