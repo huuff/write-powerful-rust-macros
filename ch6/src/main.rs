@@ -48,4 +48,28 @@ mod tests {
         assert_eq!(gleipnir.roots_of, "mountains".to_string());
         assert_eq!(gleipnir.breath_of_a_fish, 1);
     }
+
+    #[test]
+    fn should_generate_builder_for_struct_with_multiple_properties() {
+        #[derive(Builder)]
+        struct Gleipnir {
+            roots_of: String,
+            breath_of_a_fish: u8,
+            other_necessities: Vec<String>,
+        }
+
+        let gleipnir = Gleipnir::builder()
+            .roots_of("mountains".to_string())
+            .breath_of_a_fish(1)
+            .other_necessities(vec![
+                "sound of a cat's footsteps".to_string(),
+                "beard of a woman".to_string(),
+                "spittle of a birht".to_string(),
+            ])
+            .build();
+
+        assert_eq!(gleipnir.roots_of, "mountains".to_string());
+        assert_eq!(gleipnir.breath_of_a_fish, 1);
+        assert_eq!(gleipnir.other_necessities.len(), 3);
+    }
 }

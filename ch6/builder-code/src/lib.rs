@@ -34,7 +34,7 @@ pub fn create_builder(item: TokenStream) -> TokenStream {
         impl #builder {
             #(#builder_methods)*
 
-            pub fn build(&self) -> #name {
+            pub fn build(self) -> #name {
                 #name {
                     #(#set_fields,)*
                 }
