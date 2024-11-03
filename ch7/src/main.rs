@@ -33,9 +33,13 @@ mod tests {
         assert_eq!(actual.age, 22);
     }
 
-    #[should_panic]
     #[test]
-    fn should_panic_on_invalid_age() {
-        create_person("S".to_string(), 32).unwrap();
+    fn should_err_on_invalid_age() {
+        let actual = create_person("S".to_string(), 32);
+
+        assert_eq!(
+            actual.expect_err("this should be an error"),
+            "I hope I die before I get old".to_string()
+        );
     }
 }
