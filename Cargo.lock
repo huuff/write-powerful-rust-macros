@@ -45,6 +45,7 @@ name = "ch7"
 version = "0.1.0"
 dependencies = [
  "panic-to-result-macro",
+ "trybuild",
 ]
 
 [[package]]

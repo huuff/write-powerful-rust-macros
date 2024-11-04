@@ -28,7 +28,14 @@ pub fn panic_to_result(_a: TokenStream, item: TokenStream) -> TokenStream {
 fn signature_output_to_result(ast: &syn::ItemFn) -> syn::ReturnType {
     let output = match ast.sig.output {
         syn::ReturnType::Default => quote!(-> Result<(), String>),
-        syn::ReturnType::Type(_, ref ty) => quote!(-> Result<#ty, String>),
+        syn::ReturnType::Type(_, ref ty) => {
+            if ty.to_token_stream().to_string().contains("Result") {
+                unimplemented!(
+                    "`panic_to_result` doesn't work on functions that already return result"
+                );
+            }
+            quote!(-> Result<#ty, String>)
+        }
     };
 
     syn::parse2(output).unwrap()

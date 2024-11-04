@@ -1,0 +1,10 @@
+error: cannot find attribute `panic_to_result` in this scope
+ --> tests/fails/return_result.rs:6:3
+  |
+6 | #[panic_to_result]
+  |   ^^^^^^^^^^^^^^^
+  |
+help: consider importing this attribute macro
+  |
+1 + use panic_to_result_macro::panic_to_result;
+  |

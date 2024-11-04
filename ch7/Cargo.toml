@@ -5,3 +5,6 @@ edition = "2021"
 
 [dependencies]
 panic-to-result-macro = { path = "./panic-to-result-macro/" }
+
+[dev-dependencies]
+trybuild.workspace = true
