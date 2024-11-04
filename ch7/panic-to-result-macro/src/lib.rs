@@ -1,11 +1,15 @@
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens as _};
+use syn::spanned::Spanned as _;
 
 #[proc_macro_attribute]
 pub fn panic_to_result(_a: TokenStream, item: TokenStream) -> TokenStream {
     let mut ast = syn::parse_macro_input!(item as syn::ItemFn);
 
-    ast.sig.output = signature_output_to_result(&ast);
+    match signature_output_to_result(&ast) {
+        Ok(output) => ast.sig.output = output,
+        Err(error) => return error.to_compile_error().into(),
+    };
 
     let last_stmt = ast.block.stmts.pop().unwrap();
     ast.block.stmts.push(last_stmt_into_result(last_stmt));
@@ -25,20 +29,18 @@ pub fn panic_to_result(_a: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 /// Convert the output type of the signature to a result
-fn signature_output_to_result(ast: &syn::ItemFn) -> syn::ReturnType {
+fn signature_output_to_result(ast: &syn::ItemFn) -> Result<syn::ReturnType, syn::Error> {
     let output = match ast.sig.output {
         syn::ReturnType::Default => quote!(-> Result<(), String>),
         syn::ReturnType::Type(_, ref ty) => {
             if ty.to_token_stream().to_string().contains("Result") {
-                unimplemented!(
-                    "`panic_to_result` doesn't work on functions that already return result"
-                );
+                return Err(syn::Error::new(ast.sig.span(), format!("this macro can only be applied to a function that doesn't return a result. Signature: {}", quote!(#ty))));
             }
             quote!(-> Result<#ty, String>)
         }
     };
 
-    syn::parse2(output).unwrap()
+    Ok(syn::parse2(output).unwrap())
 }
 
 /// Convert the return output type to a result

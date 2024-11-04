@@ -1,3 +1,5 @@
+use panic_to_result_macro::panic_to_result;
+
 struct Person {
     age: u8,
     name: String,

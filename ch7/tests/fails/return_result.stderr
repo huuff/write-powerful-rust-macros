@@ -1,10 +1,5 @@
-error: cannot find attribute `panic_to_result` in this scope
- --> tests/fails/return_result.rs:6:3
+error: this macro can only be applied to a function that doesn't return a result. Signature: Result < Person, String >
+ --> tests/fails/return_result.rs:9:1
   |
-6 | #[panic_to_result]
-  |   ^^^^^^^^^^^^^^^
-  |
-help: consider importing this attribute macro
-  |
-1 + use panic_to_result_macro::panic_to_result;
-  |
+9 | fn create_person_with_result(age: u8, name: String) -> Result<Person, String> {
+  | ^^
