@@ -1,0 +1,21 @@
+error: this macro can only be applied to a function that does not yet return a Result. Signature: Result < Person, String >
+ --> tests/fails/two_issues.rs:7:61
+  |
+7 | fn create_person_with_two_issues(name: String, age: u32) -> Result<Person, String> {
+  |                                                             ^^^^^^^^^^^^^^^^^^^^^^
+
+error: panic needs a message!
+
+         = help: try to add a message
+         = note: we will add the message to Result's Err
+
+ --> tests/fails/two_issues.rs:9:9
+  |
+9 |         panic!();
+  |         ^^^^^^^^^
+
+error[E0601]: `main` function not found in crate `$CRATE`
+  --> tests/fails/two_issues.rs:12:2
+   |
+12 | }
+   |  ^ consider adding a `main` function to `$DIR/tests/fails/two_issues.rs`

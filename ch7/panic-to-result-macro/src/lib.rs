@@ -1,17 +1,13 @@
 use proc_macro::TokenStream;
-use proc_macro_error::{abort, proc_macro_error};
+use proc_macro_error::{emit_error, proc_macro_error};
 use quote::{quote, ToTokens as _};
-use syn::spanned::Spanned as _;
 
 #[proc_macro_error]
 #[proc_macro_attribute]
 pub fn panic_to_result(_a: TokenStream, item: TokenStream) -> TokenStream {
     let mut ast = syn::parse_macro_input!(item as syn::ItemFn);
 
-    match signature_output_to_result(&ast) {
-        Ok(output) => ast.sig.output = output,
-        Err(error) => return error.to_compile_error().into(),
-    };
+    ast.sig.output = signature_output_to_result(&ast);
 
     let last_stmt = ast.block.stmts.pop().unwrap();
     ast.block.stmts.push(last_stmt_into_result(last_stmt));
@@ -31,18 +27,20 @@ pub fn panic_to_result(_a: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 /// Convert the output type of the signature to a result
-fn signature_output_to_result(ast: &syn::ItemFn) -> Result<syn::ReturnType, syn::Error> {
+fn signature_output_to_result(ast: &syn::ItemFn) -> syn::ReturnType {
     let output = match ast.sig.output {
         syn::ReturnType::Default => quote!(-> Result<(), String>),
         syn::ReturnType::Type(_, ref ty) => {
             if ty.to_token_stream().to_string().contains("Result") {
-                return Err(syn::Error::new(ast.sig.span(), format!("this macro can only be applied to a function that doesn't return a result. Signature: {}", quote!(#ty))));
+                emit_error!(ty, format!("this macro can only be applied to a function that does not yet return a Result. Signature: {}", quote!(#ty)));
+                ast.sig.output.to_token_stream()
+            } else {
+                quote!(-> Result<#ty, String>)
             }
-            quote!(-> Result<#ty, String>)
         }
     };
 
-    Ok(syn::parse2(output).unwrap())
+    syn::parse2(output).unwrap()
 }
 
 /// Convert the return output type to a result
@@ -65,12 +63,13 @@ fn handle_expression(expression: syn::Expr, token: Option<syn::token::Semi>) -> 
                         match panic_text {
                             None => s,
                             Some(text) if text.is_empty() => {
-                                abort!(
+                                emit_error!(
                                     expr_macro,
                                     "panic needs a message!";
                                     help = "try to add a message";
                                     note = "we will add the message to Result's Err";
                                 );
+                                s
                             }
                             Some(text) => syn::parse2(quote! {
                                 return Err(#text.to_string());

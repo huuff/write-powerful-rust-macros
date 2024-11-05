@@ -1,5 +1,5 @@
-error: this macro can only be applied to a function that doesn't return a result. Signature: Result < Person, String >
- --> tests/fails/return_result.rs:9:1
+error: this macro can only be applied to a function that does not yet return a Result. Signature: Result < Person, String >
+ --> tests/fails/return_result.rs:9:56
   |
 9 | fn create_person_with_result(age: u8, name: String) -> Result<Person, String> {
-  | ^^
+  |                                                        ^^^^^^^^^^^^^^^^^^^^^^
