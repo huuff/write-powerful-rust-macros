@@ -1,7 +1,9 @@
 use proc_macro::TokenStream;
+use proc_macro_error::{abort, proc_macro_error};
 use quote::{quote, ToTokens as _};
 use syn::spanned::Spanned as _;
 
+#[proc_macro_error]
 #[proc_macro_attribute]
 pub fn panic_to_result(_a: TokenStream, item: TokenStream) -> TokenStream {
     let mut ast = syn::parse_macro_input!(item as syn::ItemFn);
@@ -20,13 +22,9 @@ pub fn panic_to_result(_a: TokenStream, item: TokenStream) -> TokenStream {
         .into_iter()
         .map(|s| match s {
             syn::Stmt::Expr(e, t) => handle_expression(e, t),
-            _ => Ok(s),
+            _ => s,
         })
-        .collect::<Result<Vec<syn::Stmt>, _>>();
-    let new_stmts = match new_stmts {
-        Ok(it) => it,
-        Err(err) => return err.to_compile_error().into(),
-    };
+        .collect::<Vec<syn::Stmt>>();
     ast.block.stmts = new_stmts;
 
     ast.to_token_stream().into()
@@ -53,10 +51,7 @@ fn last_stmt_into_result(last_stmt: syn::Stmt) -> syn::Stmt {
     syn::Stmt::Expr(syn::parse2(last_stmt).unwrap(), None)
 }
 
-fn handle_expression(
-    expression: syn::Expr,
-    token: Option<syn::token::Semi>,
-) -> Result<syn::Stmt, syn::Error> {
+fn handle_expression(expression: syn::Expr, token: Option<syn::token::Semi>) -> syn::Stmt {
     match expression {
         syn::Expr::If(mut ex_if) => {
             let new_stmts = ex_if
@@ -68,24 +63,28 @@ fn handle_expression(
                         let panic_text = extract_panic_content(expr_macro);
 
                         match panic_text {
-                            None => Ok(s),
-                            Some(text) if text.is_empty() => Err(syn::Error::new(
-                                expr_macro.span(),
-                                "please make sure every panic has a message",
-                            )),
-                            Some(text) => Ok(syn::parse2(quote! {
+                            None => s,
+                            Some(text) if text.is_empty() => {
+                                abort!(
+                                    expr_macro,
+                                    "panic needs a message!";
+                                    help = "try to add a message";
+                                    note = "we will add the message to Result's Err";
+                                );
+                            }
+                            Some(text) => syn::parse2(quote! {
                                 return Err(#text.to_string());
                             })
-                            .unwrap()),
+                            .unwrap(),
                         }
                     }
-                    _ => Ok(s),
+                    _ => s,
                 })
-                .collect::<Result<Vec<_>, _>>();
-            ex_if.then_branch.stmts = new_stmts?;
-            Ok(syn::Stmt::Expr(syn::Expr::If(ex_if), token))
+                .collect::<Vec<_>>();
+            ex_if.then_branch.stmts = new_stmts;
+            syn::Stmt::Expr(syn::Expr::If(ex_if), token)
         }
-        _ => Ok(syn::Stmt::Expr(expression, token)),
+        _ => syn::Stmt::Expr(expression, token),
     }
 }
 

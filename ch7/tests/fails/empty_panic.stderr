@@ -1,5 +1,9 @@
-error: please make sure every panic has a message
+error: panic needs a message!
+
+         = help: try to add a message
+         = note: we will add the message to Result's Err
+
   --> tests/fails/empty_panic.rs:11:9
    |
 11 |         panic!();
-   |         ^^^^^
+   |         ^^^^^^^^^
