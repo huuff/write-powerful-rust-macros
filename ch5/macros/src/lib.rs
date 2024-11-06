@@ -1,7 +1,9 @@
 use proc_macro::TokenStream;
+use proc_macro_error::proc_macro_error;
 use quote::quote;
 use syn::{parse_macro_input, spanned::Spanned, DeriveInput};
 
+#[proc_macro_error]
 #[proc_macro]
 pub fn private(item: TokenStream) -> TokenStream {
     let item = parse_macro_input!(item as DeriveInput);
@@ -19,17 +21,10 @@ pub fn private(item: TokenStream) -> TokenStream {
             fields: syn::Fields::Unnamed(syn::FieldsUnnamed { ref unnamed, .. }),
             ..
         }) => {
-            return syn::Error::new(
-                unnamed.span(),
-                "`private` only works with structs with named fields",
-            )
-            .into_compile_error()
-            .into();
+            proc_macro_error::abort!(unnamed, "`private only works on structs with named fields");
         }
         _ => {
-            return syn::Error::new(item.span(), "`private` only works on structs")
-                .into_compile_error()
-                .into();
+            proc_macro_error::abort!(item, "`private` only works on structs");
         }
     };
 
