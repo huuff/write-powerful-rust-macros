@@ -17,6 +17,15 @@ fn create_person(name: String, age: u32) -> Person {
     Person { name, age }
 }
 
+#[allow(dead_code, clippy::never_loop, while_true)]
+#[panic_to_result]
+fn always_errs_creating_person(name: String, age: u32) -> Person {
+    while true {
+        panic!("don't wanna create person");
+    }
+    Person { name, age }
+}
+
 fn main() {
     println!("Hello, world!");
 }
@@ -40,6 +49,16 @@ mod tests {
         assert_eq!(
             actual.expect_err("this should be an error"),
             "I hope I die before I get old".to_string()
+        );
+    }
+
+    #[test]
+    fn what_errs_always_errs() {
+        let result = always_errs_creating_person("Mike".to_string(), 81);
+
+        assert_eq!(
+            result.expect_err("this should be an error"),
+            "don't wanna create person",
         );
     }
 }

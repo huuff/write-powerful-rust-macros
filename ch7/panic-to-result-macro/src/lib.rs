@@ -56,34 +56,48 @@ fn handle_expression(expression: syn::Expr, token: Option<syn::token::Semi>) -> 
                 .then_branch
                 .stmts
                 .into_iter()
-                .map(|s| match s {
-                    syn::Stmt::Macro(ref expr_macro) => {
-                        let panic_text = extract_panic_content(expr_macro);
-
-                        match panic_text {
-                            None => s,
-                            Some(text) if text.is_empty() => {
-                                emit_error!(
-                                    expr_macro,
-                                    "panic needs a message!";
-                                    help = "try to add a message";
-                                    note = "we will add the message to Result's Err";
-                                );
-                                s
-                            }
-                            Some(text) => syn::parse2(quote! {
-                                return Err(#text.to_string());
-                            })
-                            .unwrap(),
-                        }
-                    }
-                    _ => s,
-                })
+                .map(handle_stmt)
                 .collect::<Vec<_>>();
             ex_if.then_branch.stmts = new_stmts;
             syn::Stmt::Expr(syn::Expr::If(ex_if), token)
         }
+        syn::Expr::While(mut ex_while) => {
+            let new_stmts = ex_while
+                .body
+                .stmts
+                .into_iter()
+                .map(handle_stmt)
+                .collect::<Vec<_>>();
+            ex_while.body.stmts = new_stmts;
+            syn::Stmt::Expr(syn::Expr::While(ex_while), token)
+        }
         _ => syn::Stmt::Expr(expression, token),
+    }
+}
+
+fn handle_stmt(stmt: syn::Stmt) -> syn::Stmt {
+    match stmt {
+        syn::Stmt::Macro(ref expr_macro) => {
+            let panic_text = extract_panic_content(expr_macro);
+
+            match panic_text {
+                None => stmt,
+                Some(text) if text.is_empty() => {
+                    emit_error!(
+                        expr_macro,
+                        "panic needs a message!";
+                        help = "try to add a message";
+                        note = "we will add the message to Result's Err";
+                    );
+                    stmt
+                }
+                Some(text) => syn::parse2(quote! {
+                    return Err(#text.to_string());
+                })
+                .unwrap(),
+            }
+        }
+        _ => stmt,
     }
 }
 
