@@ -1,21 +1,36 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
+use syn::{parse_macro_input, spanned::Spanned, DeriveInput};
 
 #[proc_macro]
 pub fn private(item: TokenStream) -> TokenStream {
     let item = parse_macro_input!(item as DeriveInput);
 
-    let name = item.ident;
-    let vis = item.vis;
-    let attrs = item.attrs;
+    let name = &item.ident;
+    let vis = &item.vis;
+    let attrs = &item.attrs;
 
-    let fields = match item.data {
+    let fields = match &item.data {
         syn::Data::Struct(syn::DataStruct {
             fields: syn::Fields::Named(syn::FieldsNamed { ref named, .. }),
             ..
         }) => named,
-        _ => panic!("`private` macro only works on structs with named fields"),
+        syn::Data::Struct(syn::DataStruct {
+            fields: syn::Fields::Unnamed(syn::FieldsUnnamed { ref unnamed, .. }),
+            ..
+        }) => {
+            return syn::Error::new(
+                unnamed.span(),
+                "`private` only works with structs with named fields",
+            )
+            .into_compile_error()
+            .into();
+        }
+        _ => {
+            return syn::Error::new(item.span(), "`private` only works on structs")
+                .into_compile_error()
+                .into();
+        }
     };
 
     let private_fields = fields.iter().map(|field| {

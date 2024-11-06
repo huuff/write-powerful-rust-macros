@@ -8,6 +8,10 @@ private! {
     }
 }
 
+// private! {
+//     struct Lol(u8);
+// }
+
 fn add_one(n: i32) -> i32 {
     n + 1
 }
