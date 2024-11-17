@@ -13,13 +13,24 @@ pub fn builder_field_definitions(
 
 pub fn original_struct_setters(
     fields: &Punctuated<Field, Comma>,
+    use_defaults: bool,
 ) -> impl Iterator<Item = TokenStream> + '_ {
-    fields.iter().map(|f| {
+    fields.iter().map(move |f| {
         let field_name = &f.ident;
         let field_name_as_string = field_name.as_ref().unwrap().to_string();
 
+        let handle_missing = if use_defaults {
+            quote! {
+                unwrap_or_default()
+            }
+        } else {
+            quote! {
+                expect(concat!("field not set: ", #field_name_as_string))
+            }
+        };
+
         quote! {
-            #field_name: self.#field_name.expect(concat!("field not set: ", #field_name_as_string))
+            #field_name: self.#field_name.#handle_missing
         }
     })
 }
