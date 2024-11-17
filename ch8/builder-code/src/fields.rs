@@ -41,9 +41,21 @@ pub fn builder_methods(
         let rename = extract_attribute_from_field(f, "rename")
             .map(|a| &a.meta)
             .map(|m| {
-                let nested = m.require_list().unwrap();
-                let a: syn::LitStr = nested.parse_args().unwrap();
-                Ident::new(&a.value(), a.span())
+                // let nested = m.require_list().unwrap();
+                // let a: syn::LitStr = nested.parse_args().unwrap();
+                // Ident::new(&a.value(), a.span())
+                let nested = m.require_name_value().unwrap();
+                match nested {
+                    syn::MetaNameValue {
+                        value:
+                            syn::Expr::Lit(syn::ExprLit {
+                                lit: syn::Lit::Str(literal_string),
+                                ..
+                            }),
+                        ..
+                    } => Ident::new(&literal_string.value(), literal_string.span()),
+                    _ => panic!("expected a lit rename value"),
+                }
             });
 
         let setter_name = if let Some(ref rename) = rename {
