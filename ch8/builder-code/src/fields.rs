@@ -40,14 +40,10 @@ pub fn builder_methods(
         let (field_name, field_ty) = get_name_and_type(f);
         let rename = extract_attribute_from_field(f, "rename")
             .map(|a| &a.meta)
-            .map(|m| match m {
-                syn::Meta::List(nested) => {
-                    let a: syn::LitStr = nested.parse_args().unwrap();
-                    Ident::new(&a.value(), a.span())
-                }
-                _ => {
-                    panic!("expected brackets with name of prop");
-                }
+            .map(|m| {
+                let nested = m.require_list().unwrap();
+                let a: syn::LitStr = nested.parse_args().unwrap();
+                Ident::new(&a.value(), a.span())
             });
 
         if let Some(rename) = rename {
