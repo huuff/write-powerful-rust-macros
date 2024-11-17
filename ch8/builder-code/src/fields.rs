@@ -38,10 +38,31 @@ pub fn builder_methods(
 ) -> impl Iterator<Item = TokenStream> + '_ {
     fields.iter().map(|f| {
         let (field_name, field_ty) = get_name_and_type(f);
-        quote! {
-            pub fn #field_name(mut self, input: #field_ty) -> Self {
-                self.#field_name = Some(input);
-                self
+        let rename = extract_attribute_from_field(f, "rename")
+            .map(|a| &a.meta)
+            .map(|m| match m {
+                syn::Meta::List(nested) => {
+                    let a: syn::LitStr = nested.parse_args().unwrap();
+                    Ident::new(&a.value(), a.span())
+                }
+                _ => {
+                    panic!("expected brackets with name of prop");
+                }
+            });
+
+        if let Some(rename) = rename {
+            quote! {
+                pub fn #rename(mut self, input: #field_ty) -> Self {
+                    self.#field_name = Some(input);
+                    self
+                }
+            }
+        } else {
+            quote! {
+                pub fn #field_name(mut self, input: #field_ty) -> Self {
+                    self.#field_name = Some(input);
+                    self
+                }
             }
         }
     })
@@ -51,6 +72,10 @@ fn get_name_and_type(f: &Field) -> (&Option<Ident>, &Type) {
     let field_name = &f.ident;
     let field_ty = &f.ty;
     (field_name, field_ty)
+}
+
+fn extract_attribute_from_field<'a>(f: &'a Field, name: &'a str) -> Option<&'a syn::Attribute> {
+    f.attrs.iter().find(|&attr| attr.path().is_ident(name))
 }
 
 #[cfg(test)]
