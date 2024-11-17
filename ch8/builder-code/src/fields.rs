@@ -46,19 +46,16 @@ pub fn builder_methods(
                 Ident::new(&a.value(), a.span())
             });
 
-        if let Some(rename) = rename {
-            quote! {
-                pub fn #rename(mut self, input: #field_ty) -> Self {
-                    self.#field_name = Some(input);
-                    self
-                }
-            }
+        let setter_name = if let Some(ref rename) = rename {
+            rename
         } else {
-            quote! {
-                pub fn #field_name(mut self, input: #field_ty) -> Self {
-                    self.#field_name = Some(input);
-                    self
-                }
+            field_name.as_ref().unwrap()
+        };
+
+        quote! {
+            pub fn #setter_name(mut self, input: #field_ty) -> Self {
+                self.#field_name = Some(input);
+                self
             }
         }
     })
