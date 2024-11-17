@@ -1,0 +1,10 @@
+[package]
+name = "ch8"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ch8-builder-macro = { path = "./builder-macro" }
+
+[dev-dependencies]
+trybuild.workspace = true

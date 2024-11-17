@@ -10,6 +10,9 @@ members = [
   "ch6/builder-code",
   "ch7",
   "ch7/panic-to-result-macro",
+  "ch8",
+  "ch8/builder-macro",
+  "ch8/builder-code",
 ]
 
 [workspace.dependencies]
