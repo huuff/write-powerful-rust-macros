@@ -4,7 +4,8 @@ use quote::{format_ident, quote};
 use syn::DeriveInput;
 
 use fields::{
-    builder_field_definitions, builder_field_init, builder_methods, original_struct_setters,
+    builder_field_definitions, builder_field_init, builder_methods, optional_default_asserts,
+    original_struct_setters,
 };
 
 const DEFAULTS_ATTRIBUTE_NAME: &str = "builder_defaults";
@@ -27,7 +28,14 @@ pub fn create_builder(item: TokenStream) -> TokenStream {
     let builder_fields = builder_field_definitions(fields);
     let builder_inits = builder_field_init(fields);
     let builder_methods = builder_methods(fields);
+
     let set_fields = original_struct_setters(fields, use_defaults);
+
+    let default_assertions = if use_defaults {
+        optional_default_asserts(fields)
+    } else {
+        vec![]
+    };
 
     quote! {
         struct #builder {
@@ -51,6 +59,8 @@ pub fn create_builder(item: TokenStream) -> TokenStream {
                 }
             }
         }
+
+        #(#default_assertions)*
     }
 }
 
@@ -58,9 +68,4 @@ fn use_defaults(attrs: &[syn::Attribute]) -> bool {
     attrs
         .iter()
         .any(|attr| attr.path().is_ident(DEFAULTS_ATTRIBUTE_NAME))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
 }

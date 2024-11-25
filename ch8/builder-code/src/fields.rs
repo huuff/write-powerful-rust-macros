@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
-use quote::quote;
-use syn::{punctuated::Punctuated, token::Comma, Field, Ident, Type};
+use quote::{format_ident, quote};
+use syn::{punctuated::Punctuated, spanned::Spanned as _, token::Comma, Field, Ident, Type};
 
 pub fn builder_field_definitions(
     fields: &Punctuated<Field, Comma>,
@@ -84,6 +84,22 @@ pub fn builder_methods(
     })
 }
 
+pub fn optional_default_asserts(fields: &Punctuated<syn::Field, Comma>) -> Vec<TokenStream> {
+    fields
+        .iter()
+        .map(|f| {
+            let name = &f.ident.as_ref().unwrap();
+            let ty = &f.ty;
+            let assertion_ident = format_ident!("__{}DefaultAssertion", name);
+
+            quote::quote_spanned! { ty.span() =>
+                    #[allow(non_camel_case_types)]
+                    struct #assertion_ident where #ty: core::default::Default;
+            }
+        })
+        .collect()
+}
+
 fn get_name_and_type(f: &Field) -> (&Option<Ident>, &Type) {
     let field_name = &f.ident;
     let field_ty = &f.ty;
@@ -92,9 +108,4 @@ fn get_name_and_type(f: &Field) -> (&Option<Ident>, &Type) {
 
 fn extract_attribute_from_field<'a>(f: &'a Field, name: &'a str) -> Option<&'a syn::Attribute> {
     f.attrs.iter().find(|&attr| attr.path().is_ident(name))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
 }
