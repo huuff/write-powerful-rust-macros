@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use proc_macro_error::proc_macro_error;
 use quote::quote;
-use syn::{parse_macro_input, spanned::Spanned, DeriveInput};
+use syn::{parse_macro_input, DeriveInput};
 
 #[proc_macro_error]
 #[proc_macro]

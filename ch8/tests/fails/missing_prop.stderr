@@ -1,0 +1,19 @@
+error[E0432]: unresolved import `builder_macro`
+ --> tests/fails/missing_prop.rs:1:5
+  |
+1 | use builder_macro::Builder;
+  |     ^^^^^^^^^^^^^ use of undeclared crate or module `builder_macro`
+  |
+help: there is a crate or module with a similar name
+  |
+1 | use ch8_builder_macro::Builder;
+  |     ~~~~~~~~~~~~~~~~~
+
+error[E0599]: no function or associated item named `builder` found for struct `Gleipnir` in the current scope
+  --> tests/fails/missing_prop.rs:11:15
+   |
+4  | struct Gleipnir {
+   | --------------- function or associated item `builder` not found for this struct
+...
+11 |     Gleipnir::builder()
+   |               ^^^^^^^ function or associated item not found in `Gleipnir`

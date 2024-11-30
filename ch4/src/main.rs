@@ -12,6 +12,7 @@ struct Example {
 #[delete]
 struct EmptyStruct {}
 
+#[allow(dead_code)]
 #[public]
 struct TupleExample(u8, u32);
 
