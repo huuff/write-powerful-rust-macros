@@ -22,12 +22,13 @@ mod tests {
     fn should_generate_builder_for_struct_with_two_props_one_custom_name() {
         #[derive(Builder)]
         struct Gleipnir {
+            #[builder(rename = "tops_of")]
             roots_of: String,
             breath_of_a_fish: u8,
         }
 
         let gleipnir = Gleipnir::builder()
-            .roots_of("mountains".to_string())
+            .tops_of("mountains".to_string())
             .breath_of_a_fish(1)
             .build();
 
