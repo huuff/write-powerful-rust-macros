@@ -1,5 +1,8 @@
+#![allow(dead_code)]
+
 use proc_macro::TokenStream;
 use quote::ToTokens;
+use syn::meta::ParseNestedMeta;
 use syn::parse::{Parse, Parser as _};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
@@ -9,7 +12,9 @@ use syn::{parse_macro_input, DataStruct, DeriveInput, Fields, FieldsNamed};
 #[proc_macro_attribute]
 pub fn public(attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut ast = parse_macro_input!(item as DeriveInput);
-    let excluded_fields = parse_macro_input!(attr as ExcludedFields);
+    let mut excluded_fields = ExcludedFields::default();
+    let attr_parser = syn::meta::parser(|meta| excluded_fields.parse(meta));
+    parse_macro_input!(attr with attr_parser);
 
     match ast.data {
         Data::Struct(DataStruct {
@@ -45,6 +50,19 @@ impl ExcludedFields {
             .map(|n| n.to_string())
             .map(|n| self.fields.iter().any(|f| *f == n))
             .unwrap_or(false)
+    }
+
+    // alternative parser
+    fn parse(&mut self, meta: ParseNestedMeta) -> Result<(), syn::Error> {
+        if meta.path.is_ident(EXCLUDE_ATTR_NAME) {
+            meta.parse_nested_meta(|meta| {
+                let ident = &meta.path.segments.first().unwrap().ident;
+                self.fields.push(ident.to_string());
+                Ok(())
+            })
+        } else {
+            Err(meta.error("unsupported property"))
+        }
     }
 }
 
