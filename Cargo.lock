@@ -3,6 +3,14 @@
 version = 3
 
 [[package]]
+name = "analyze"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn 2.0.79",
+]
+
+[[package]]
 name = "builder-code"
 version = "0.1.0"
 dependencies = [
@@ -52,6 +60,7 @@ dependencies = [
 name = "ch8"
 version = "0.1.0"
 dependencies = [
+ "analyze",
  "ch8-builder-macro",
  "trybuild",
 ]

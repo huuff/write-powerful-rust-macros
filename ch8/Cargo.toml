@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 ch8-builder-macro = { path = "./builder-macro" }
+analyze = { path = "./analyze" }
 
 [dev-dependencies]
 trybuild.workspace = true

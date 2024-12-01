@@ -13,6 +13,7 @@ members = [
   "ch8",
   "ch8/builder-macro",
   "ch8/builder-code",
+  "ch8/analyze",
 ]
 
 [workspace.dependencies]
