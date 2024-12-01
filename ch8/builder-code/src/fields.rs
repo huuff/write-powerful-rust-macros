@@ -4,21 +4,23 @@ use syn::{punctuated::Punctuated, token::Comma, Field, Ident};
 
 use crate::utils::{create_builder_ident, create_field_struct_name, get_name_and_type};
 
-pub fn original_struct_setters(
+fn original_struct_setters<FS: FallbackStrategy>(
     fields: &Punctuated<Field, Comma>,
-) -> impl Iterator<Item = TokenStream> + '_ {
-    fields.iter().map(move |f| {
-        let field_name = &f.ident;
-        let field_name_as_string = field_name.as_ref().unwrap().to_string();
+    fallback_strategy: FS,
+) -> Vec<TokenStream> {
+    fields
+        .iter()
+        .map(|f| {
+            let field_name = &f.ident;
+            let field_name_as_string = field_name.as_ref().unwrap().to_string();
 
-        let handle_missing = quote! {
-                expect(concat!("field not set: ", #field_name_as_string))
-        };
+            let handle_missing = fallback_strategy.fallback(field_name_as_string);
 
-        quote! {
-            #field_name: self.#field_name.#handle_missing
-        }
-    })
+            quote! {
+                #field_name: self.#field_name.#handle_missing
+            }
+        })
+        .collect()
 }
 
 pub fn marker_trait_and_structs(name: &Ident, fields: &Punctuated<Field, Comma>) -> TokenStream {
@@ -86,7 +88,7 @@ pub fn builder_impl_for_struct(name: &Ident, fields: &Punctuated<Field, Comma>) 
 
 pub fn builder_methods(struct_name: &Ident, fields: &Punctuated<Field, Comma>) -> TokenStream {
     let builder_name = create_builder_ident(struct_name);
-    let set_fields = original_struct_setters(fields);
+    let set_fields = original_struct_setters(fields, ConcreteFallbackStrategy::Panic);
     let assignments_for_all_fields = get_assignments_for_fields(fields);
     let mut previous_field = None;
     let reversed_names_and_types: Vec<&Field> = fields.iter().rev().collect();
@@ -173,6 +175,27 @@ fn builder_for_final_field(
                     marker: Default::default(),
                     #(#field_assignments,)*
                 }
+            }
+        }
+    }
+}
+
+trait FallbackStrategy {
+    fn fallback(&self, field_name_as_string: String) -> TokenStream;
+}
+
+#[allow(dead_code)]
+enum ConcreteFallbackStrategy {
+    Default,
+    Panic,
+}
+
+impl FallbackStrategy for ConcreteFallbackStrategy {
+    fn fallback(&self, field_name_as_string: String) -> TokenStream {
+        match self {
+            ConcreteFallbackStrategy::Default => quote!(unwrap_or_default()),
+            ConcreteFallbackStrategy::Panic => {
+                quote!(expect(concat!("field not set: ", #field_name_as_string)))
             }
         }
     }
