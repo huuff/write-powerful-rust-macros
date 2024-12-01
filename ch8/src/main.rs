@@ -37,6 +37,24 @@ mod tests {
     }
 
     #[test]
+    fn should_generate_builder_for_struct_with_two_props_one_uppercase() {
+        #[derive(Builder)]
+        struct Gleipnir {
+            #[builder(rename = "tops_of", uppercase)]
+            roots_of: String,
+            breath_of_a_fish: u8,
+        }
+
+        let gleipnir = Gleipnir::builder()
+            .tops_of("mountains".to_string())
+            .breath_of_a_fish(1)
+            .build();
+
+        assert_eq!(gleipnir.roots_of, "MOUNTAINS");
+        assert_eq!(gleipnir.breath_of_a_fish, 1);
+    }
+
+    #[test]
     fn should_work_with_correct_order() {
         #[allow(dead_code)]
         #[derive(Builder)]

@@ -16,8 +16,14 @@ fn original_struct_setters<FS: FallbackStrategy>(
 
             let handle_missing = fallback_strategy.fallback(field_name_as_string);
 
-            quote! {
-                #field_name: self.#field_name.#handle_missing
+            if f.modifiers.uppercase {
+                quote! {
+                    #field_name: self.#field_name.#handle_missing.to_ascii_uppercase()
+                }
+            } else {
+                quote! {
+                    #field_name: self.#field_name.#handle_missing
+                }
             }
         })
         .collect()
@@ -226,6 +232,7 @@ impl From<syn::Field> for FieldWrapper {
 #[derive(Default)]
 pub struct FieldModifiers {
     rename: Option<syn::Ident>,
+    uppercase: bool,
 }
 
 impl FieldModifiers {
@@ -241,6 +248,9 @@ impl FieldModifiers {
                         if meta.path.is_ident("rename") {
                             let value: syn::LitStr = meta.value().unwrap().parse().unwrap();
                             output.rename = Some(format_ident!("{}", value.value()));
+                            Ok(())
+                        } else if meta.path.is_ident("uppercase") {
+                            output.uppercase = true;
                             Ok(())
                         } else {
                             Err(meta.error("unsupported key"))
