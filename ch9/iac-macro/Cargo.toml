@@ -1,0 +1,11 @@
+[package]
+name = "iac-macro"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+quote = { workspace = true }
+syn = { workspace = true, features = ["extra-traits"] }
+
+[lib]
+proc-macro = true
