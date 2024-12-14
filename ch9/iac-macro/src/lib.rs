@@ -1,6 +1,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
+    parenthesized,
     parse::{Parse, ParseStream},
     parse_macro_input,
     spanned::Spanned as _,
@@ -97,48 +98,75 @@ struct Lambda {
 
 impl Parse for Lambda {
     fn parse(input: ParseStream) -> Result<Self, syn::Error> {
-        let lambda_token = input
+        let _ = input
             .parse::<kw::lambda>()
             .expect("we just checked for this token");
-        let lambda_name = input
-            .parse()
-            .map(|v: syn::Ident| v.to_string())
-            .map_err(|_| syn::Error::new(lambda_token.span, "lambda needs a name"))?;
+        let mut lambda_name = None;
         let mut lambda_memory = None;
         let mut lambda_timeout = None;
 
-        while !input.is_empty() && !input.peek(kw::bucket) {
-            if input.peek(kw::mem) {
-                let _ = input
-                    .parse::<kw::mem>()
-                    .expect("we just checked for this token");
+        let content;
+        parenthesized!(content in input);
 
-                lambda_memory = Some(input.parse().map(|v: syn::LitInt| {
-                    v.to_string().parse().map_err(|_| {
-                        syn::Error::new(v.span(), "memory needs positive value <= 10240")
-                    })
-                })??);
-            } else if input.peek(kw::time) {
-                let _ = input
-                    .parse::<kw::time>()
-                    .expect("we just checked for this token");
-                lambda_timeout = Some(input.parse().map(|v: syn::LitInt| {
-                    v.to_string().parse().map_err(|_| {
-                        syn::Error::new(v.span(), "timeout needs positive value <= 900")
-                    })
-                })??);
-            } else {
-                Err(syn::Error::new(
-                    input.span(),
-                    "unknown property passed to lambda",
-                ))?
+        let kvs =
+            syn::punctuated::Punctuated::<KeyValue, syn::Token!(,)>::parse_terminated(&content)?;
+
+        kvs.into_iter().for_each(|kv| {
+            if kv.key == "name" {
+                lambda_name = Some(kv.value);
+            } else if kv.key == "mem" {
+                lambda_memory = Some(kv.value.parse().unwrap());
+            } else if kv.key == "time" {
+                lambda_timeout = Some(kv.value.parse().unwrap());
             }
-        }
+        });
 
         Ok(Lambda {
-            name: lambda_name,
+            name: lambda_name.ok_or(syn::Error::new(input.span(), "lambda needs a name"))?,
             memory: lambda_memory,
             time: lambda_timeout,
         })
+    }
+}
+
+#[derive(Debug)]
+struct KeyValue {
+    key: String,
+    value: String,
+}
+
+impl Parse for KeyValue {
+    fn parse(input: ParseStream) -> Result<Self, syn::Error> {
+        let key = input
+            .parse()
+            .map(|v: syn::Ident| v.to_string())
+            .map_err(|_| {
+                syn::Error::new(input.span(), "should have property keys within parentheses")
+            })?;
+
+        let _: syn::Token!(=) = input.parse().map_err(|_| {
+            syn::Error::new(input.span(), "prop name and value should be separated by =")
+        })?;
+
+        let value = if key == "name" {
+            input
+                .parse()
+                .map(|v: syn::Ident| v.to_string())
+                .map_err(|_| syn::Error::new(input.span(), "name property needs a value"))
+        } else if key == "mem" || key == "time" {
+            input
+                .parse()
+                .map(|v: syn::LitInt| v.to_string())
+                .map_err(|_| {
+                    syn::Error::new(input.span(), "memory and time needs a positive value")
+                })
+        } else {
+            Err(syn::Error::new(
+                input.span(),
+                format!("unknown property for lambda: {}", key),
+            ))
+        }?;
+
+        Ok(KeyValue { key, value })
     }
 }
