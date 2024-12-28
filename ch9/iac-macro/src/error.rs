@@ -44,26 +44,20 @@ impl IacError {
     }
 }
 
-impl From<S3Error<CreateBucketError>> for IacError {
-    fn from(value: S3Error<CreateBucketError>) -> Self {
-        Self::Bucket(format!("{value:?}"))
-    }
+macro_rules! generate_from_error {
+    ($mine:expr, $aws:ty) => {
+        impl From<$aws> for IacError {
+            fn from(value: $aws) -> Self {
+                $mine(format!("{value:?}"))
+            }
+        }
+    };
 }
 
-impl From<LambdaError<CreateFunctionError>> for IacError {
-    fn from(value: LambdaError<CreateFunctionError>) -> Self {
-        Self::Lambda(format!("{value:?}"))
-    }
-}
-
-impl From<S3Error<PutBucketNotificationConfigurationError>> for IacError {
-    fn from(value: LambdaError<PutBucketNotificationConfigurationError>) -> Self {
-        Self::Event(format!("{value:?}"))
-    }
-}
-
-impl From<LambdaError<AddPermissionError>> for IacError {
-    fn from(value: LambdaError<AddPermissionError>) -> Self {
-        Self::Lambda(format!("{value:?}"))
-    }
-}
+generate_from_error!(IacError::Bucket, S3Error<CreateBucketError>);
+generate_from_error!(IacError::Lambda, LambdaError<CreateFunctionError>);
+generate_from_error!(
+    IacError::Event,
+    S3Error<PutBucketNotificationConfigurationError>
+);
+generate_from_error!(IacError::Lambda, LambdaError<AddPermissionError>);
