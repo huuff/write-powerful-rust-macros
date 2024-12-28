@@ -19,11 +19,14 @@ pub struct Lambda {
 
 impl IacInput {
     pub fn has_resources(&self) -> bool {
-        fn is_ide_completion() -> bool {
-            std::env::var_os("RUST_IDE_PROC_MACRO_COMPLETION_DUMMY_IDENTIFIER")
-                .is_some_and(|it| !it.is_empty())
-        }
+        // fn is_ide_completion() -> bool {
+        //     std::env::var_os("RUST_IDE_PROC_MACRO_COMPLETION_DUMMY_IDENTIFIER")
+        //         .is_some_and(|it| !it.is_empty())
+        // }
 
-        !is_ide_completion() && (self.bucket.is_some() || self.lambda.is_some())
+        // !is_ide_completion() && (self.bucket.is_some() || self.lambda.is_some())
+        // XXX: hardcoded false because I don't actually ever
+        // want to generate these
+        false
     }
 }
